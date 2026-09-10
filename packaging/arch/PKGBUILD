@@ -1,0 +1,24 @@
+# Maintainer: ArkSentinel <arksentinel@users.noreply.github.com>
+pkgname=surfacemap-studio-bin
+pkgver=1.2.0
+pkgrel=1
+pkgdesc="Photometric PBR Material Texture Map Synthesizer and Game Engine Target Pipeline"
+arch=('x86_64')
+url="https://github.com/ArkSentinel/SurfaceMap-Studio"
+license=('MIT')
+depends=('python>=3.9' 'python-pyqt6' 'python-numpy' 'python-pillow' 'python-scipy')
+provides=('surfacemap-studio')
+conflicts=('surfacemap-studio')
+source=("https://github.com/ArkSentinel/SurfaceMap-Studio/releases/download/v${pkgver}/surfacemap-studio-linux-x86_64.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+    install -d "${pkgdir}/usr/lib/surfacemap-studio"
+    install -d "${pkgdir}/usr/bin"
+    install -d "${pkgdir}/usr/share/applications"
+
+    cp -r "${srcdir}/surfacemap-studio/"* "${pkgdir}/usr/lib/surfacemap-studio/"
+    ln -s "/usr/lib/surfacemap-studio/surfacemap-studio" "${pkgdir}/usr/bin/surfacemap-studio"
+    
+    install -Dm644 "${srcdir}/surfacemap-studio/packaging/linux/surfacemap-studio.desktop" "${pkgdir}/usr/share/applications/surfacemap-studio.desktop" 2>/dev/null || true
+}

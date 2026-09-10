@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "surfacemap-studio"
+version = "1.2.0"
+description = "Cross-platform desktop application for generating and synthesizing complete physical PBR surface texture sets."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["pbr", "textures", "material", "gamedev", "blender", "godot", "unreal", "unity", "graphics", "normalmap", "surfacemap"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+]
+dependencies = [
+    "PyQt6>=6.5.0",
+    "numpy>=1.24.0",
+    "Pillow>=9.5.0",
+    "scipy>=1.10.0",
+]
+
+[project.scripts]
+surfacemap-studio = "pbr_studio.app:main"
+surfacemap = "pbr_studio.app:main"
+
+[tool.setuptools.packages.find]
+include = ["pbr_studio*"]

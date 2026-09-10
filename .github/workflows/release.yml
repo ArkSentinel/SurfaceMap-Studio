@@ -1,0 +1,163 @@
+name: Build and Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-packages:
+    name: Build Linux Packages (.deb, .rpm, .tar.gz, Arch PKGBUILD)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install system tools for packaging
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y dpkg-dev rpm binutils libgl1-mesa-glx
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build Standalone Executable with PyInstaller
+      run: |
+        pyinstaller --noconfirm --onedir --windowed --name surfacemap-studio main.py
+
+    - name: Build Linux Portable .tar.gz
+      run: |
+        cd dist
+        tar -czvf ../surfacemap-studio-linux-x86_64.tar.gz surfacemap-studio/
+        cd ..
+
+    - name: Build Debian/Ubuntu .deb Package
+      run: |
+        VERSION="1.2.0"
+        PKG_DIR="surfacemap-studio_${VERSION}_amd64"
+        mkdir -p "$PKG_DIR/DEBIAN"
+        mkdir -p "$PKG_DIR/usr/bin"
+        mkdir -p "$PKG_DIR/usr/lib/surfacemap-studio"
+        mkdir -p "$PKG_DIR/usr/share/applications"
+
+        cat << 'CONTROL_EOF' > "$PKG_DIR/DEBIAN/control"
+Package: surfacemap-studio
+Version: 1.2.0
+Section: graphics
+Priority: optional
+Architecture: amd64
+Maintainer: ArkSentinel <https://github.com/ArkSentinel/SurfaceMap-Studio>
+Description: Photometric PBR Material Texture Map Synthesizer
+ SurfaceMap Studio converts single images into full PBR material sets
+ (Normal, Height, Roughness, Metallic, AO, Specular, ORM Packed) with
+ real-time 2D/3D previews, batch processing, and game engine export targets.
+CONTROL_EOF
+
+        cp -r dist/surfacemap-studio/* "$PKG_DIR/usr/lib/surfacemap-studio/"
+        ln -sf /usr/lib/surfacemap-studio/surfacemap-studio "$PKG_DIR/usr/bin/surfacemap-studio"
+        cp packaging/linux/surfacemap-studio.desktop "$PKG_DIR/usr/share/applications/"
+        dpkg-deb --build "$PKG_DIR"
+        mv "$PKG_DIR.deb" surfacemap-studio_1.2.0_amd64.deb
+
+    - name: Build Fedora/RHEL .rpm Package
+      run: |
+        mkdir -p ~/rpmbuild/BUILD ~/rpmbuild/RPMS ~/rpmbuild/SOURCES ~/rpmbuild/SPECS ~/rpmbuild/SRPMS
+        cp packaging/rpm/surfacemap-studio.spec ~/rpmbuild/SPECS/
+        # Package source into tar.gz
+        tar -czvf ~/rpmbuild/SOURCES/surfacemap-studio-1.2.0.tar.gz -C dist/surfacemap-studio .
+        rpmbuild -bb --nodeps ~/rpmbuild/SPECS/surfacemap-studio.spec || true
+        find ~/rpmbuild/RPMS -name "*.rpm" -exec cp {} ./surfacemap-studio-1.2.0-1.x86_64.rpm \; || true
+
+    - name: Package Arch Linux PKGBUILD
+      run: |
+        tar -czvf surfacemap-studio-arch-PKGBUILD.tar.gz -C packaging/arch PKGBUILD
+
+    - name: Upload Linux Release Assets
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          surfacemap-studio-linux-x86_64.tar.gz
+          surfacemap-studio_1.2.0_amd64.deb
+          surfacemap-studio-arch-PKGBUILD.tar.gz
+          surfacemap-studio-1.2.0-1.x86_64.rpm
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+
+  build-macos:
+    name: Build macOS Universal Bundle (.zip)
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build macOS App with PyInstaller
+      run: |
+        pyinstaller --noconfirm --onedir --windowed --name "SurfaceMap Studio" main.py
+        cd dist
+        zip -r ../surfacemap-studio-macos-universal.zip "SurfaceMap Studio.app"
+        cd ..
+
+    - name: Upload macOS Release Asset
+      uses: softprops/action-gh-release@v2
+      with:
+        files: surfacemap-studio-macos-universal.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+
+  build-windows:
+    name: Build Windows Executable (.zip)
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build Windows Executable with PyInstaller
+      run: |
+        pyinstaller --noconfirm --onedir --windowed --name surfacemap-studio main.py
+        Compress-Archive -Path dist\surfacemap-studio -DestinationPath surfacemap-studio-windows-x86_64.zip
+
+    - name: Upload Windows Release Asset
+      uses: softprops/action-gh-release@v2
+      with:
+        files: surfacemap-studio-windows-x86_64.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true

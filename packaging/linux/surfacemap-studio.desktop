@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=SurfaceMap Studio
+Comment=Single-Image PBR Material & Surface Texture Map Synthesizer
+Exec=surfacemap-studio
+Icon=surfacemap-studio
+Terminal=false
+Type=Application
+Categories=Graphics;3DGraphics;Development;
+Keywords=PBR;Textures;Materials;3D;NormalMap;GameDev;
+StartupNotify=true
