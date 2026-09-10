@@ -50,14 +50,17 @@ class LabeledSlider(QWidget):
         
         header_layout.addStretch()
 
-        self.spinbox = QDoubleSpinBox() if decimals > 0 else QSpinBox()
-        self.spinbox.setRange(min_val, max_val)
         if decimals > 0:
+            self.spinbox = QDoubleSpinBox()
+            self.spinbox.setRange(min_val, max_val)
             self.spinbox.setDecimals(decimals)
             self.spinbox.setSingleStep(step)
+            self.spinbox.setValue(default_val)
         else:
+            self.spinbox = QSpinBox()
+            self.spinbox.setRange(int(min_val), int(max_val))
             self.spinbox.setSingleStep(int(step) if step >= 1 else 1)
-        self.spinbox.setValue(default_val)
+            self.spinbox.setValue(int(default_val))
         self.spinbox.setFixedWidth(68)
         self.spinbox.setStyleSheet("background-color: #202124; border: 1px solid #373a40; border-radius: 4px; padding: 2px 4px;")
         header_layout.addWidget(self.spinbox)
