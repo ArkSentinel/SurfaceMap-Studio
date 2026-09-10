@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -45,7 +46,7 @@ jobs:
 
     - name: Build Debian/Ubuntu .deb Package
       run: |
-        VERSION="1.2.0"
+        VERSION="1.2.1"
         PKG_DIR="surfacemap-studio_${VERSION}_amd64"
         mkdir -p "$PKG_DIR/DEBIAN"
         mkdir -p "$PKG_DIR/usr/bin"
@@ -54,7 +55,7 @@ jobs:
 
         cat << 'CONTROL_EOF' > "$PKG_DIR/DEBIAN/control"
 Package: surfacemap-studio
-Version: 1.2.0
+Version: 1.2.1
 Section: graphics
 Priority: optional
 Architecture: amd64
@@ -69,16 +70,15 @@ CONTROL_EOF
         ln -sf /usr/lib/surfacemap-studio/surfacemap-studio "$PKG_DIR/usr/bin/surfacemap-studio"
         cp packaging/linux/surfacemap-studio.desktop "$PKG_DIR/usr/share/applications/"
         dpkg-deb --build "$PKG_DIR"
-        mv "$PKG_DIR.deb" surfacemap-studio_1.2.0_amd64.deb
+        mv "$PKG_DIR.deb" surfacemap-studio_1.2.1_amd64.deb
 
     - name: Build Fedora/RHEL .rpm Package
       run: |
         mkdir -p ~/rpmbuild/BUILD ~/rpmbuild/RPMS ~/rpmbuild/SOURCES ~/rpmbuild/SPECS ~/rpmbuild/SRPMS
         cp packaging/rpm/surfacemap-studio.spec ~/rpmbuild/SPECS/
-        # Package source into tar.gz
-        tar -czvf ~/rpmbuild/SOURCES/surfacemap-studio-1.2.0.tar.gz -C dist/surfacemap-studio .
+        tar -czvf ~/rpmbuild/SOURCES/surfacemap-studio-1.2.1.tar.gz -C dist/surfacemap-studio .
         rpmbuild -bb --nodeps ~/rpmbuild/SPECS/surfacemap-studio.spec || true
-        find ~/rpmbuild/RPMS -name "*.rpm" -exec cp {} ./surfacemap-studio-1.2.0-1.x86_64.rpm \; || true
+        find ~/rpmbuild/RPMS -name "*.rpm" -exec cp {} ./surfacemap-studio-1.2.1-1.x86_64.rpm \; || true
 
     - name: Package Arch Linux PKGBUILD
       run: |
@@ -89,9 +89,9 @@ CONTROL_EOF
       with:
         files: |
           surfacemap-studio-linux-x86_64.tar.gz
-          surfacemap-studio_1.2.0_amd64.deb
+          surfacemap-studio_1.2.1_amd64.deb
           surfacemap-studio-arch-PKGBUILD.tar.gz
-          surfacemap-studio-1.2.0-1.x86_64.rpm
+          surfacemap-studio-1.2.1-1.x86_64.rpm
         draft: false
         prerelease: false
         generate_release_notes: true
